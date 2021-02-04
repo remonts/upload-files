@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
+const { promisify } = require('util');
 
 const PostSchema = new mongoose.Schema({
     name: String,
@@ -14,6 +17,12 @@ const PostSchema = new mongoose.Schema({
 PostSchema.pre('save', function() {
     if (!this.url) {
         this.url = `${process.env.APP_URL}/files/${this.key}`
+    }
+});
+
+PostSchema.pre('remove', function() {
+    if (process.env.STORAGE_TYPE === "local") {
+        return promisify(fs.unlink)(path.resolve(__dirname, '..', '..', 'tmp', 'uploads', this.key));
     }
 });
 
